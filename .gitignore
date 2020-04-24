@@ -3,3 +3,4 @@
 logix
 logix.o
 ui.o
+renderer.o
