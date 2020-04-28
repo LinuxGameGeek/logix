@@ -64,6 +64,8 @@ void Renderer::realize(){
 void Renderer::unrealize(){
 	delete vbptr;
 	delete ibptr;
+	delete vaptr;
+	delete vblptr;
 	glArea->make_current();
 	try
 	{
