@@ -4,3 +4,7 @@ logix
 logix.o
 ui.o
 renderer.o
+indexbuffer.o
+vertexbuffer.o
+shader.o
+vertexarray.o
