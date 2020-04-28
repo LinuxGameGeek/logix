@@ -1,5 +1,5 @@
-#ifndef VERTEXBUFFER_H
-#define VERTEXBUFFER_H
+#ifndef VERTEX_BUFFER_H
+#define VERTEX_BUFFER_H
 
 #include <epoxy/gl.h>
 
