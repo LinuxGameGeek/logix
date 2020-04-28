@@ -1,11 +1,11 @@
-#ifndef INDEXBUFFER_H
-#define INDEXBUFFER_H
+#ifndef INDEX_BUFFER_H
+#define INDEX_BUFFER_H
 
 #include <epoxy/gl.h>
 
 class IndexBuffer{
   public:
-   IndexBuffer(const void* data, GLuint count);
+   IndexBuffer(const GLuint* data, GLuint count);
     ~IndexBuffer();
 
     void bind() const;
