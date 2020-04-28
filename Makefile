@@ -9,8 +9,8 @@ GTKFLAGS = `pkg-config gtkmm-3.0 --cflags --libs`
 INCLUDES = -I./src -I/src/viewport
 LIBS = -lm -lepoxy
 
-logix: logix.o ui.o renderer.o shader.o vertexbuffer.o indexbuffer.o
-	$(CXX) $(GTKFLAGS)  $(LIBS) logix.o ui.o renderer.o shader.o vertexbuffer.o indexbuffer.o -o logix
+logix: logix.o ui.o renderer.o shader.o vertexbuffer.o indexbuffer.o vertexarray.o
+	$(CXX) $(GTKFLAGS)  $(LIBS) logix.o ui.o renderer.o shader.o vertexbuffer.o indexbuffer.o vertexarray.o -o logix
 
 logix.o: ./src/logix.cpp
 	$(CXX) $(GTKFLAGS) -c $(CXXFLAGS) ./src/logix.cpp $(LIBS)
@@ -25,13 +25,16 @@ shader.o: ./src/viewport/shader.cpp
 	$(CXX) -c $(CXXFLAGS) ./src/viewport/shader.cpp $(LIBS)
 
 vertexbuffer.o: ./src/viewport/vertexbuffer.cpp
-	$(CXX) -c $(CXXFLAGS) ./src/viewport/vertexbuffer.cpp $(LIBS)
+	$(CXX) -c $(CXXFLAGS) $(INCLUDES) ./src/viewport/vertexbuffer.cpp $(LIBS)
 
 indexbuffer.o: ./src/viewport/indexbuffer.cpp
-	$(CXX) -c $(CXXFLAGS) ./src/viewport/indexbuffer.cpp $(LIBS)
+	$(CXX) -c $(CXXFLAGS) $(INCLUDES) ./src/viewport/indexbuffer.cpp $(LIBS)
+
+vertexarray.o: ./src/viewport/vertexarray.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCLUDES) ./src/viewport/vertexarray.cpp $(LIBS)
 
 clean:
-	rm -f ./logix ./logix.o ./ui.o ./renderer.o
+	rm -f ./logix ./logix.o ./ui.o ./renderer.o ./shader.o ./vertexbuffer.o ./indexbuffer.o ./vertexarray.o
 
 install:
 	echo "Installing is not supported"
