@@ -10,8 +10,8 @@ Renderer::Renderer(Gtk::GLArea* glarea)
 }
 
 void Renderer::realize(){
-	std::cout<<glGetString(GL_VERSION)<<std::endl;
 	glArea->make_current();
+	std::cout<<glGetString(GL_VERSION)<<std::endl;
 	std::cout<<"realize\n";
 	try{
 		glArea->throw_if_error();
