@@ -23,8 +23,13 @@ void Renderer::realize(){
 	glArea->make_current();
 	glArea->set_auto_render(true);
 	std::clog<<"make current"<<std::endl;
-	std::clog<<epoxy_gl_version()<<"\n";
-	std::clog<<epoxy_glsl_version()<<"\n";
+	//std::clog<<epoxy_gl_version()<<"\n";
+	//std::clog<<epoxy_glsl_version()<<"\n";
+
+
+	glArea->make_current();
+	std::cout<<glGetString(GL_VERSION)<<std::endl;
+	std::cout<<"realize\n";
 	try{
 		glArea->throw_if_error();
 		std::clog<<glGetString(GL_VERSION)<<"\n";
