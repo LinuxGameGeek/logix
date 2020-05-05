@@ -23,6 +23,7 @@ Ui::Ui (int argc, char* argv[]){
 }
 
 Ui::~Ui(){
+	std::clog<<"ui dtor\n";
 	delete viewport;
 }
 

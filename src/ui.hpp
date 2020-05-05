@@ -1,6 +1,9 @@
 #ifndef UI_H
 #define UI_H
 
+/*
+ This class is responsible for the Ui of the application.
+*/
 #include "./renderer.hpp"
 #include <gtkmm-3.0/gtkmm.h>
 
