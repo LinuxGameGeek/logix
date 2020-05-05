@@ -1,22 +1,62 @@
 #include "./shader.hpp"
 
 
-GLuint Shader::create_shader_program(char* dir = nullptr){
-  GLuint vertex_shader;
-  GLuint fragment_shader;
-  if(dir != nullptr){
-		char vpath[] = "./src/res/shaders/vertex.glsl";
-		char fpath[] = "./src/res/shaders/fragment.glsl";
-  }else{
-		char vpath[] = "./src/res/shaders/vertex.glsl";
-		char fpath[] = "./src/res/shaders/fragment.glsl";
-    vertex_shader = create_shader(GL_VERTEX_SHADER, vpath);
-    fragment_shader = create_shader(GL_FRAGMENT_SHADER, fpath);
-  }
+Shader::Shader(char* dirpath){
+
+	std::vector<GLuint> shaders;
+	DIR *dir = nullptr;
+	dir = opendir(dirpath);
+	if(dir != nullptr){
+		std::clog<<"loading files from: "<<dirpath<<"\n";
+		while((drnt = readdir(dir))){
+			std::clog<<drnt->d_name<<std::endl;
+			char path[500];
+			if(std::strcmp("vertex.glsl", drnt->d_name) == 0){
+				sprintf(path, "%s/%s", dirpath, drnt->d_name);
+				shaders.push_back(create_shader(GL_VERTEX_SHADER, path));
+			}else if(std::strcmp("fragment.glsl", drnt->d_name) == 0){
+				sprintf(path, "%s/%s", dirpath, drnt->d_name);
+				shaders.push_back(create_shader(GL_FRAGMENT_SHADER, path));
+			}else{
+			}
+		}
+	}else{
+		std::cerr<<"Couldnt open dir\n";
+	}
+	closedir(dir);
+	shader_program = create_shader_program(&shaders);
+	for(unsigned int i = 0; i < shaders.size(); i++)
+	glDeleteShader(shaders[i]);
+}
+
+Shader::~Shader(){}
+
+void Shader::bind() const{
+	glUseProgram(shader_program);
+}
+
+void Shader::unbind() const{
+	glUseProgram(0);
+}
+
+void Shader::set_uniform4f (const std::string& name, glm::vec4 data){
+	glUniform4fv(get_uniform_location(name), 1, glm::value_ptr(data));
+}
+
+void Shader::set_uniform_mat4f(const std::string& name, const glm::mat4& matrix){
+	glUniformMatrix4fv(get_uniform_location(name), 1, GL_FALSE, &matrix[0][0]);
+}
+
+GLuint Shader::get_uniform_location(const std::string& name){
+	return glGetUniformLocation(shader_program, name.c_str());
+}
+
+GLuint Shader::create_shader_program(std::vector<GLuint>* shaders){
   std::clog<<"Linking program!\n";
   GLuint shader_program = glCreateProgram();
-  glAttachShader(shader_program, vertex_shader);
-  glAttachShader(shader_program, fragment_shader);
+  for(unsigned int i = 0; i < shaders->size (); i++){
+  	glAttachShader(shader_program, shaders->at(i));
+  }
   glLinkProgram(shader_program);
   glValidateProgram(shader_program);
   //glLinkProgram(shader);
@@ -35,9 +75,6 @@ GLuint Shader::create_shader_program(char* dir = nullptr){
 		std::clog<<"Shaderprogram compiled successfully!"<<std::endl;
 		return shader_program;
   }
-
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
 
   return shader_program;
 }
