@@ -3,14 +3,14 @@ all: logix
 WARNINGS = -Wall
 DEBUG = -ggdb -fno-omit-frame-pointer
 OPTIMIZE = -O2
-CXX = g++
-CXXFLAGS =  $(WARNINGS) $(DEBUG) $(OPTIMIZE)
+CXX = g++ -std=c++17
+CXXFLAGS = $(WARNINGS) $(DEBUG) $(OPTIMIZE)
 GTKFLAGS = `pkg-config gtkmm-3.0 --cflags --libs`
 INCLUDES = -I./src -I/src/viewport
-LIBS = -lm -lepoxy
+LIBS = -lstdc++fs -lm -lepoxy
 
 logix: logix.o ui.o renderer.o shader.o vertexbuffer.o indexbuffer.o vertexarray.o
-	$(CXX) $(GTKFLAGS)  $(LIBS) logix.o ui.o renderer.o shader.o vertexbuffer.o indexbuffer.o vertexarray.o -o logix
+	$(CXX) $(LIBS) $(GTKFLAGS) logix.o ui.o renderer.o shader.o vertexbuffer.o indexbuffer.o vertexarray.o -o logix
 
 logix.o: ./src/logix.cpp
 	$(CXX) $(GTKFLAGS) -c $(CXXFLAGS) ./src/logix.cpp $(LIBS)
