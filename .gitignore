@@ -8,3 +8,5 @@ indexbuffer.o
 vertexbuffer.o
 shader.o
 vertexarray.o
+node.o
+and.o

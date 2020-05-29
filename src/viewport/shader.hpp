@@ -19,7 +19,9 @@ class Shader{
   	inline GLuint get_program(){return shader_program;};
 
   	void set_uniform4f(const std::string& name, glm::vec4);
+  	void set_uniform2f(const std::string& name, glm::vec2);
   	void set_uniform_mat4f(const std::string& name, const glm::mat4&);
+  	void set_uniform_float(const std::string& name, const GLfloat&);
 
     static GLuint create_shader_program(std::vector<GLuint>* shaders);
     static GLuint create_shader(GLenum, char* path);

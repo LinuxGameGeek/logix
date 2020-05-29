@@ -39,12 +39,20 @@ void Shader::unbind() const{
 	glUseProgram(0);
 }
 
-void Shader::set_uniform4f (const std::string& name, glm::vec4 data){
+void Shader::set_uniform4f(const std::string& name, glm::vec4 data){
+	glUniform4fv(get_uniform_location(name), 1, glm::value_ptr(data));
+}
+
+void Shader::set_uniform2f(const std::string& name, glm::vec2 data){
 	glUniform4fv(get_uniform_location(name), 1, glm::value_ptr(data));
 }
 
 void Shader::set_uniform_mat4f(const std::string& name, const glm::mat4& matrix){
 	glUniformMatrix4fv(get_uniform_location(name), 1, GL_FALSE, &matrix[0][0]);
+}
+
+void Shader::set_uniform_float(const std::string& name, const GLfloat& Float){
+	glUniformMatrix4fv(get_uniform_location(name), 1, GL_FALSE, &Float);
 }
 
 GLuint Shader::get_uniform_location(const std::string& name){

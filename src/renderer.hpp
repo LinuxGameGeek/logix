@@ -8,9 +8,9 @@ struct scene{				//viewport data
 	glm::mat4 view;
 	glm::mat4 model;
 	glm::mat4 mvp;
-	float zoom = 1.0f;
+	float zoom = 0.2f;
 	glm::vec2 dim;
-	glm::vec3 pos = {0, 0, 1.0f};
+	glm::vec3 pos = {0, 0, 1};
 };
 
 struct pointer{				//mouse data
@@ -33,14 +33,19 @@ struct keyboard{			//keyboard data
 #include "viewport/vertexbuffer.hpp"
 #include "viewport/indexbuffer.hpp"
 #include "viewport/vertexarray.hpp"
+#include "viewport/shapes/grid.hpp"
+#include "viewport/shapes/rectangle.hpp"
+#include "viewport/shapes/circle.hpp"
+#include "viewport/nodes/node.hpp"
+//#include <gtkmm-3.0/gtkmm.h>
 #include <gtkmm-3.0/gtkmm/glarea.h>
 #include <glm/glm.hpp>
 //#include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 //#include <gdkmm-3.0/gdkmm/glcontext.h>
 //#include <glibmm-2.4/glibmm/refptr.h>
-//#include <epoxy/gl.h>
-//#include <epoxy/glx.h>
+#include <epoxy/gl.h>
+#include <epoxy/glx.h>
 #include <iostream>
 
 class Renderer{
@@ -56,19 +61,19 @@ class Renderer{
     	bool button_release(GdkEventButton* button);		//called when a button is released
 	private:
 		Gtk::GLArea* glArea;								//pointer to the glArea widget, created in ui object
-		GLuint vao;
-		IndexBuffer* ibptr;
-		VertexBuffer* vbptr;
-		VertexArray* vaptr;
-		VertexBufferLayout* vblptr;
-		Shader* shader_program;
 
+		Grid* rgrid;
+		Grid* bgrid;
+		glm::vec2 posi, sizei;
+		glm::vec4 colorp;
+		Rectangle* rect;
+		Circle* crc;
+		NodeList nodelist;
 		pointer mouse;										//mouse variable obj
 		scene viewport;										//viewport variable obj
 
 		void update_view();									//This function is resposible for paning and zooming the viewport
 		glm::vec3 mouse_translate(glm::vec3);				//translates screen coords to world coords
-
 };
 
 #endif //

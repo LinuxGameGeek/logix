@@ -9,7 +9,7 @@ Renderer::Renderer(Gtk::GLArea* glarea)
 
  	glArea->signal_realize().connect(sigc::mem_fun(*this, &Renderer::realize));
  	glArea->signal_unrealize().connect(sigc::mem_fun(*this, &Renderer::unrealize), false);
-	glArea->signal_render().connect(sigc::mem_fun(*this, &Renderer::render));
+	glArea->signal_render().connect(sigc::mem_fun(*this, &Renderer::render), false);
 	glArea->signal_resize().connect(sigc::mem_fun(*this, &Renderer::resize));
 	glArea->signal_motion_notify_event().connect(sigc::mem_fun(*this, &Renderer::mouse_move));
 	glArea->signal_scroll_event().connect(sigc::mem_fun(*this, &Renderer::mouse_scroll));
@@ -34,50 +34,18 @@ void Renderer::realize(){
 		glArea->throw_if_error();
 		std::clog<<glGetString(GL_VERSION)<<"\n";
 		std::clog<<glGetString(GL_VENDOR)<<"\n";
-		char path[] = "./src/res/shaders";
-		shader_program = new Shader(path);
-		shader_program->bind();
-		//shader_program = Shader::create_shader_program(nullptr);
-		//glUseProgram(shader_program);
 
-		GLfloat pos[] = {
-			-0.5f, -0.5f, -1,
-			0.5f, -0.5f, -1,
-			0.5f, 0.5f, -1,
-			-0.5f, 0.5f, -1
-		};
-		GLuint ind[] = {
-			0, 1, 2,
-			2, 3, 0
-		};
+		bgrid = new Grid(glm::vec3(-8.0, 0.0, -1.0), glm::vec3(8.0, 0.0, -1.0), &viewport.mvp, 0.025f);
+		rgrid = new Grid(glm::vec3(-8.0, 0.0, -1.0), glm::vec3(8.0, 0.0, -1.0), &viewport.mvp, 1.0f, glm::vec4(1.0f, 0.5f, 0.3f, 0.6f));
 
-
-		vaptr = new VertexArray();
-
-		//glGenVertexArrays(1, &vao);
-		//glBindVertexArray(vao);
-
-		vbptr = new VertexBuffer(pos, 4 * 3 * sizeof(GLfloat));
-
-		vblptr = new VertexBufferLayout;
-		vblptr->add(3, GL_FLOAT);
-		//vblptr->add(3, GL_FLOAT);
-		//vblptr->add(2, GL_FLOAT);
-		vaptr->addBuffer(*vbptr, *vblptr);
-		//glEnableVertexAttribArray(0);
-		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0);
-
-		ibptr = new IndexBuffer(ind, 6);
-		//int location = epoxy_glGetUniformLocation(shader_program->get_program(), "u_Color");
-		//glUniform4f(location, 0.2f, 0.3f, 0.8f, 1.0f);
-		//glm::vec4 data = {0.2f, 0.3f, 0.8f, 1.0f};
-		shader_program->set_uniform4f ("u_Color", {0.2f, 0.3f, 0.8f, 1.0f});
-		//viewport.proj = glm::ortho(-width/height/2, width/height/2, -height/width/2, height/width/2);
-		//shader_program->set_uniform_mat4f ("mvp", viewport.proj);
-	 	//glBindVertexArray(0);
- 		//glUseProgram(0);
- 		//glBindBuffer(GL_ARRAY_BUFFER, 0);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		sizei = glm::vec2(0.4, 0.4);
+		posi = glm::vec2(1.0, 0.0);
+		colorp = glm::vec4(0.2f, 0.3f, 0.8f, 1.0f);
+		nodelist.mvp = &viewport.mvp;
+		nodelist.create(types::AND, posi);
+		//nodelist.create(types::AND, glm::vec2(3.0, 0.0));
+		//rect = new Rectangle(&posi, &sizei, &viewport.mvp, &colorp);
+		//crc = new Circle(&posi, &sizei.x, &viewport.mvp, &colorp);
 	}catch(const Gdk::GLError& gle){
 		std::cerr << "An error occured making the context current during realize:" << std::endl;
 		std::cerr << gle.domain() << "-" << gle.code() << "-" << gle.what() << std::endl;
@@ -86,11 +54,12 @@ void Renderer::realize(){
 
 void Renderer::unrealize(){
 	glArea->make_current();
-	delete vbptr;
-	delete ibptr;
-	delete vaptr;
-	delete vblptr;
-	delete shader_program;
+
+	delete rgrid;
+	delete bgrid;
+	nodelist.clear();
+	//delete rect;
+	//delete crc;
 	try
 	{
 		glArea->throw_if_error();
@@ -111,16 +80,16 @@ bool Renderer::render(const Glib::RefPtr<Gdk::GLContext>&  context ){
 	std::clog<<"render\n";
 	update_view();
 	//glArea->attach_buffers();
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glClear(GL_COLOR_BUFFER_BIT);
-	shader_program->bind();
 
-	glBindVertexArray(vao);
-	vaptr->bind();
-	ibptr->bind();
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-	glBindVertexArray(0);
-	glUseProgram(0);
+	//bgrid->draw();
+	//rgrid->draw();
+	nodelist.draw();
+	//rect->draw();
+	//crc->draw();
 	return true;
 }
 
@@ -130,7 +99,10 @@ bool Renderer::mouse_move(GdkEventMotion* event){
 	if(mouse.button == 1){
 		viewport.pos = viewport.pos - diff;
 		std::clog<<viewport.pos .x<<" "<<viewport.pos.y<<" "<<viewport.pos.z<<"\n";
+		//glArea->queue_draw();
+		//glArea->queue_draw();
 		glArea->queue_render();
+		//glArea->signal_render();
 	}
 	mouse.x = event->x;
 	mouse.y = event->y;
@@ -138,7 +110,8 @@ bool Renderer::mouse_move(GdkEventMotion* event){
 }
 
 bool Renderer::mouse_scroll(GdkEventScroll* event){
-	if(event->direction == GDK_SCROLL_DOWN && viewport.zoom>1){
+	//nodelist.create(types::AND, glm::vec2(4.0, 3.0));
+	if(event->direction == GDK_SCROLL_DOWN && viewport.zoom>0.2){
 		viewport.zoom = viewport.zoom - 0.1;
 	}else if(event->direction == GDK_SCROLL_UP && viewport.zoom<10){
 		viewport.zoom = viewport.zoom + 0.1;
@@ -154,9 +127,11 @@ bool Renderer::button_press(GdkEventButton* event){
 	mouse.button = event->button;
 	mouse.x = event->x;
 	mouse.y = event->y;
-	//if(event->mouse.button == 1){	//left mouse button
-	//
-	//}
+	if(event->button == 3){	//left mouse button
+		//glm::vec3 var = mouse_translate(glm::vec3(event->x, event->y, 0.0));
+		//std::clog<<var.x<<" "<<var.y<<"\n";
+		//nodelist.create(types::AND, glm::vec2(4.0, 3.0));
+	}
 	return true;
 }
 
@@ -166,6 +141,7 @@ bool Renderer::button_release(GdkEventButton* button){
 }
 
 void Renderer::update_view(){
+	std::clog<<"update view\n";
 	viewport.view = glm::translate(glm::mat4(1.0f), glm::vec3(viewport.pos.x, -viewport.pos.y, -viewport.pos.z));
 	viewport.model = glm::translate(glm::mat4(1.0f), glm::vec3( 0, 0, 1.0));
 	if(viewport.dim.x<viewport.dim.y){
@@ -173,10 +149,8 @@ void Renderer::update_view(){
 	}else{
 		viewport.proj =  glm::ortho(-1.0f/viewport.zoom, 1.0f/viewport.zoom, -viewport.dim.y/viewport.dim.x/viewport.zoom, viewport.dim.y/viewport.dim.x/viewport.zoom);
 	}
-	viewport.mvp = viewport.proj * viewport.view * viewport.model;
+	viewport.mvp = viewport.proj * viewport.view;
 
-	shader_program->bind();
-	shader_program->set_uniform_mat4f ("mvp", viewport.mvp);
 }
 
 glm::vec3 Renderer::mouse_translate(glm::vec3 pos){
