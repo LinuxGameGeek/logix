@@ -1,11 +1,11 @@
 # logix
-A simple open source Logic gate simulator
+A simple open source Logic gate simulator.
 
-Tested under linux. Needs to be recompiled for windows with the right deps.
+Cross platform Logic Gate simulator
 
 dependencies:
 libepoxy
-gtkmm-3.0
+qt 5.15
 glm
 
-Special thanks to The Cherno on youtube for his opengl tutorial series.
+Special thanks to The Cherno on youtube for his opengl tutorial series and various qt tutorials
