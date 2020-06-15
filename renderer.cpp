@@ -53,6 +53,7 @@
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLContext>
 #include <QtCore/QRunnable>
+#include "includes/glm/glm.hpp"
 
 OpenGLWindow::OpenGLWindow()
     : m_t(0)
@@ -120,12 +121,11 @@ void Renderer::init()
         Q_ASSERT(rif->graphicsApi() == QSGRendererInterface::OpenGL || rif->graphicsApi() == QSGRendererInterface::OpenGLRhi);
 
         initializeOpenGLFunctions();
-
         m_program = new QOpenGLShaderProgram();
         m_program->addCacheableShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/shader.vsh");
         m_program->addCacheableShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/shader.fsh");
 
-        //m_program->bindAttributeLocation("vertices", 0);
+        m_program->bindAttributeLocation("vertices", 0);
         m_program->link();
 
     }
@@ -141,20 +141,32 @@ void Renderer::paint()
 
     m_program->enableAttributeArray(0);
 
+    glm::vec2 vert[]{
+        glm::vec2(-0.2, 0.2),
+        glm::vec2(0.2, 0.2),
+        glm::vec2(0.2, -0.2),
+        glm::vec2(-0.2, -0.2)
+    };
 
     // This example relies on (deprecated) client-side pointers for the vertex
     // input. Therefore, we have to make sure no vertex buffer is bound.
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    m_program->setAttributeArray(0, GL_FLOAT, values, 2);
-    m_program->setUniformValue("t", (float) m_t);
+    m_program->setAttributeArray(0, GL_FLOAT, vert, 2);
 
     glViewport(0, 0, m_viewportSize.width(), m_viewportSize.height());
 
+    glDisable(GL_DEPTH_TEST);
+
+
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    //glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     m_program->disableAttributeArray(0);
     m_program->release();
