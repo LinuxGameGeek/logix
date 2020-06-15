@@ -50,11 +50,16 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "includes/glm/glm.hpp"
+#include "includes/glm/gtc/matrix_transform.hpp"
+#include "includes/glm/gtc/type_ptr.hpp"
+
 #include <QtQuick/QQuickItem>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLFunctions>
 #include <QRunnable>
 #include <qqml.h>
+#include <iostream>
 
 class Renderer : public QObject, protected QOpenGLFunctions
 {
@@ -67,13 +72,23 @@ public:
     void setViewportSize(const QSize &size) { m_viewportSize = size; }
     void setWindow(QQuickWindow *window) { m_window = window; }
 
+    glm::vec3 m_viewportPosition = {0, 0, 1.0};
+
 public slots:
     void init();
     void paint();
+    void updateView();
+    glm::vec3 mouseTranslate(glm::vec3);				//translates screen coords to world coords
 
 private:
+    glm::mat4 m_vp;
+    glm::mat4 m_modelMatrix;
+    glm::mat4 m_projectionMatrix;
+
+    float m_viewportZoom = 0.2f;
     QSize m_viewportSize;
     qreal m_t;
+
     QOpenGLShaderProgram *m_program;
     QQuickWindow *m_window;
 };
@@ -90,6 +105,7 @@ private:
 class OpenGLWindow : public QQuickItem{
     Q_OBJECT
     Q_PROPERTY(qreal t READ t WRITE setT NOTIFY tChanged)
+    Q_PROPERTY(QVector2D inputPos READ inputPos WRITE setInputPos NOTIFY inputPosChanged)
     QML_ELEMENT
 
 public:
@@ -98,21 +114,30 @@ public:
     qreal t() const { return m_t; }
     void setT(qreal t);
 
+    QVector2D inputPos(){return m_inputPos;};
+    void setInputPos(const QVector2D &inputPos);
+
 signals:
     void tChanged();
+    void inputPosChanged();
 
 public slots:
     void sync();
     void cleanup();
+    //QVector2D mousepos();
 
 private slots:
     void handleWindowChanged(QQuickWindow *win);
 
 private:
     void releaseResources() override;
+    //void wheelEvent(QWheelEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *) override;
+    void resize();
 
     qreal m_t;
     Renderer *m_renderer;
+    QVector2D m_inputPos;
 };
 
 #endif

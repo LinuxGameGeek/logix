@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
@@ -53,7 +53,6 @@
 #include <QtGui/QOpenGLShaderProgram>
 #include <QtGui/QOpenGLContext>
 #include <QtCore/QRunnable>
-#include "includes/glm/glm.hpp"
 
 OpenGLWindow::OpenGLWindow()
     : m_t(0)
@@ -73,15 +72,25 @@ void OpenGLWindow::setT(qreal t)
         window()->update();
 }
 
+void OpenGLWindow::setInputPos(const QVector2D &inputPos)
+{
+    /*if(m_renderer != nullptr){
+        m_renderer->m_viewportPosition = m_renderer->m_viewportPosition + m_renderer->mouseTranslate(glm::vec3(inputPos.x(), inputPos.y(), 0.0));
+        m_renderer->updateView();
+        this->update();
+    }*/
+}
+
 void OpenGLWindow::handleWindowChanged(QQuickWindow *win)
 {
     if (win) {
         connect(win, &QQuickWindow::beforeSynchronizing, this, &OpenGLWindow::sync, Qt::DirectConnection);
         connect(win, &QQuickWindow::sceneGraphInvalidated, this, &OpenGLWindow::cleanup, Qt::DirectConnection);
-
+        connect(win, &QQuickWindow::widthChanged, this, &OpenGLWindow::resize, Qt::DirectConnection);
+        connect(win, &QQuickWindow::heightChanged, this, &OpenGLWindow::resize, Qt::DirectConnection);
 
         // Ensure we start with cleared to black. The squircle's blend mode relies on this.
-        win->setColor(Qt::black);
+        win->setColor(Qt::white);
     }
 }
 
@@ -95,6 +104,21 @@ void OpenGLWindow::releaseResources()
 {
     window()->scheduleRenderJob(new CleanupJob(m_renderer), QQuickWindow::BeforeSynchronizingStage);
     m_renderer = nullptr;
+}
+
+void OpenGLWindow::dragMoveEvent(QDragMoveEvent *event)
+{
+    if(m_renderer != nullptr){
+        m_renderer->m_viewportPosition = m_renderer->m_viewportPosition + m_renderer->mouseTranslate(glm::vec3(event->pos().x(), event->pos().y(), 0.0));
+        m_renderer->updateView();
+        this->update();
+    }
+}
+
+void OpenGLWindow::resize(){
+    if(m_renderer != nullptr){
+        m_renderer->updateView();
+    }
 }
 
 Renderer::~Renderer()
@@ -125,9 +149,9 @@ void Renderer::init()
         m_program->addCacheableShaderFromSourceFile(QOpenGLShader::Vertex, ":/shaders/shader.vsh");
         m_program->addCacheableShaderFromSourceFile(QOpenGLShader::Fragment, ":/shaders/shader.fsh");
 
-        m_program->bindAttributeLocation("vertices", 0);
+        m_program->bindAttributeLocation("vertex", 0);
         m_program->link();
-
+        updateView();
     }
 }
 
@@ -135,6 +159,7 @@ void Renderer::paint()
 {
     // Play nice with the RHI. Not strictly needed when the scenegraph uses
     // OpenGL directly.
+    updateView();
     m_window->beginExternalCommands();
 
     m_program->bind();
@@ -153,18 +178,18 @@ void Renderer::paint()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     m_program->setAttributeArray(0, GL_FLOAT, vert, 2);
+    m_program->setUniformValue("ViewProjectionMatrix", QMatrix4x4(glm::value_ptr(m_vp)));
+    m_program->setUniformValue("ModelMatrix", QMatrix4x4(glm::value_ptr(m_modelMatrix)));
 
     glViewport(0, 0, m_viewportSize.width(), m_viewportSize.height());
 
-    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);   //This function makes qml widgets overlap the viewport
 
 
     glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
     glClear(GL_COLOR_BUFFER_BIT);
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -176,4 +201,19 @@ void Renderer::paint()
     m_window->resetOpenGLState();
 
     m_window->endExternalCommands();
+}
+
+void Renderer::updateView(){
+    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(m_viewportPosition.x, -m_viewportPosition.y, -m_viewportPosition.z));
+    m_modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, 1.0f));
+    if(m_viewportSize.width()<m_viewportSize.height()){
+        m_projectionMatrix =  glm::ortho((float)-m_viewportSize.width()/(float)m_viewportSize.height()/m_viewportZoom, (float)m_viewportSize.width()/(float)m_viewportSize.height()/m_viewportZoom, -1.0f/m_viewportZoom, 1.0f/m_viewportZoom);
+    }else{
+        m_projectionMatrix =  glm::ortho(-1.0f/m_viewportZoom, 1.0f/m_viewportZoom, (float)-m_viewportSize.height()/(float)m_viewportSize.width()/m_viewportZoom, (float)m_viewportSize.height()/(float)m_viewportSize.width()/m_viewportZoom);
+    }
+    m_vp = m_projectionMatrix * view;
+}
+
+glm::vec3 Renderer::mouseTranslate(glm::vec3 pos){
+    return glm::unProject(pos, m_modelMatrix, m_projectionMatrix, glm::vec4(0.0f, 0.0f, m_viewportSize.width(), m_viewportSize.height()));
 }

@@ -1,6 +1,7 @@
 import QtQml.Models 2.3
 import QtQml 2.3
 import QtQuick 2.3
+import QtQuick 2.15
 import QtQuick.Controls 2.3
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Material 2.3
@@ -15,6 +16,14 @@ OpenGLWindow {
     height: 1080
     Material.theme: Material.Light
     Material.accent: Material.Purple
+    inputPos: dragHandler.translation //Qt.vector2d(dragHandler.xAxis ,dragHandler.yAxis)
+
+    DragHandler {
+        id: dragHandler
+        target: null
+
+    }
+
     //title: qsTr("logix")
 
     GridLayout {
@@ -64,6 +73,7 @@ OpenGLWindow {
 
                 TabBar {
                     id: tabBar
+                    clip: true
                     Layout.fillWidth: true
 
                     TabButton {
