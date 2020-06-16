@@ -1,5 +1,7 @@
 SQT += quick
-QT += quickcontrols2
+QT += quickcontrols2 \
+    quick \
+    widgets
 
 CONFIG += c++17 qmltypes
 QML_IMPORT_NAME = OpenGLWindow

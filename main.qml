@@ -16,12 +16,19 @@ OpenGLWindow {
     height: 1080
     Material.theme: Material.Light
     Material.accent: Material.Purple
-    inputPos: dragHandler.translation //Qt.vector2d(dragHandler.xAxis ,dragHandler.yAxis)
+    inputPos: Qt.vector2d(pointhandler.point.x, pointhandler.point.x)
+    //console.log: pointhandler.point.x + pointhandler.point.x
 
-    DragHandler {
-        id: dragHandler
+    PointHandler {
+        id: pointhandler
+    }
+
+    WheelHandler {
+
+    }
+
+    PinchHandler {
         target: null
-
     }
 
     //title: qsTr("logix")
@@ -31,7 +38,7 @@ OpenGLWindow {
         anchors.fill: parent
         rowSpacing: 5
         layoutDirection: Qt.LeftToRight
-        flow: GridLayout.TopToBottom
+        flow: width > height ? GridLayout.TopToBottom : GridLayout.LeftToRight
         anchors.margins: 10
 
         MenuBar2 {
@@ -48,6 +55,20 @@ OpenGLWindow {
             ]
         }
 
+        Button {
+            id: toolpaneToggleButton
+            Layout.row: 0
+            Layout.column: 3
+            Material.background: Material.BlueGrey
+            Material.elevation: 6
+            text: qsTr("TOGGLE TOOLS")
+
+            property bool toolPaneIsOn : width > height ? true : false
+            onClicked: {
+                toolPaneIsOn = !toolPaneIsOn
+            }
+        }
+
         Item {
             id: element
             Layout.fillHeight: true
@@ -55,17 +76,17 @@ OpenGLWindow {
             Layout.row: 1
             Layout.column: 0
             Layout.columnSpan: 2
-
         }
 
         Pane {
             id: toolpane
-            width: 370
-            Layout.minimumWidth: 400
+            // width: 370
+            Layout.minimumWidth: window.width > window.height ? 400 : 200
             Layout.row: 1
             Layout.column: 3
             Layout.fillHeight: true
             Material.elevation: 6
+            visible: toolpaneToggleButton.toolPaneIsOn
 
             ColumnLayout {
                 id: columnLayout2
@@ -78,17 +99,17 @@ OpenGLWindow {
 
                     TabButton {
                         id: tabButton
-                        text: qsTr("Tab Button")
+                        text: qsTr("Node Options")
                     }
 
                     TabButton {
                         id: tabButton1
-                        text: qsTr("Tab Button")
+                        text: qsTr("New")
                     }
 
                     TabButton {
                         id: tabButton2
-                        text: qsTr("Tab Button")
+                        text: qsTr("All")
                     }
 
 

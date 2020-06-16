@@ -60,6 +60,7 @@ OpenGLWindow::OpenGLWindow()
 {
     //this->setVisible(true);
     connect(this, &QQuickItem::windowChanged, this, &OpenGLWindow::handleWindowChanged);
+    //connect(this, &QQuickItem::dragMoveEvent, this, &OpenGLWindow::dragMoveEvent);
 }
 
 void OpenGLWindow::setT(qreal t)
@@ -72,13 +73,10 @@ void OpenGLWindow::setT(qreal t)
         window()->update();
 }
 
-void OpenGLWindow::setInputPos(const QVector2D &inputPos)
+void OpenGLWindow::setInputPos(QVector2D inputPos)
 {
-    /*if(m_renderer != nullptr){
-        m_renderer->m_viewportPosition = m_renderer->m_viewportPosition + m_renderer->mouseTranslate(glm::vec3(inputPos.x(), inputPos.y(), 0.0));
-        m_renderer->updateView();
-        this->update();
-    }*/
+   m_inputPos = inputPos;
+   std::clog<<inputPos.x()<<"\n";
 }
 
 void OpenGLWindow::handleWindowChanged(QQuickWindow *win)
@@ -88,7 +86,7 @@ void OpenGLWindow::handleWindowChanged(QQuickWindow *win)
         connect(win, &QQuickWindow::sceneGraphInvalidated, this, &OpenGLWindow::cleanup, Qt::DirectConnection);
         connect(win, &QQuickWindow::widthChanged, this, &OpenGLWindow::resize, Qt::DirectConnection);
         connect(win, &QQuickWindow::heightChanged, this, &OpenGLWindow::resize, Qt::DirectConnection);
-
+        //connect(win, &QMouseEvent::DragMove, this, )
         // Ensure we start with cleared to black. The squircle's blend mode relies on this.
         win->setColor(Qt::white);
     }
@@ -104,15 +102,6 @@ void OpenGLWindow::releaseResources()
 {
     window()->scheduleRenderJob(new CleanupJob(m_renderer), QQuickWindow::BeforeSynchronizingStage);
     m_renderer = nullptr;
-}
-
-void OpenGLWindow::dragMoveEvent(QDragMoveEvent *event)
-{
-    if(m_renderer != nullptr){
-        m_renderer->m_viewportPosition = m_renderer->m_viewportPosition + m_renderer->mouseTranslate(glm::vec3(event->pos().x(), event->pos().y(), 0.0));
-        m_renderer->updateView();
-        this->update();
-    }
 }
 
 void OpenGLWindow::resize(){

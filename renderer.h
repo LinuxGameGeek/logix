@@ -113,9 +113,8 @@ public:
 
     qreal t() const { return m_t; }
     void setT(qreal t);
-
-    QVector2D inputPos(){return m_inputPos;};
-    void setInputPos(const QVector2D &inputPos);
+    QVector2D inputPos() const { return m_inputPos; }
+    void setInputPos(QVector2D inputPos);
 
 signals:
     void tChanged();
@@ -124,15 +123,12 @@ signals:
 public slots:
     void sync();
     void cleanup();
-    //QVector2D mousepos();
 
 private slots:
     void handleWindowChanged(QQuickWindow *win);
 
 private:
     void releaseResources() override;
-    //void wheelEvent(QWheelEvent *event) override;
-    void dragMoveEvent(QDragMoveEvent *) override;
     void resize();
 
     qreal m_t;
